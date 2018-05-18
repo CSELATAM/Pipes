@@ -1,6 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Queue;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,32 +12,60 @@ namespace Pipes.Azure
         class Message : IDisposable
         {
             public readonly CloudQueueMessage InternalMessage;
-            private readonly CloudQueue _queue;
+            private CloudQueue _queue;
             private bool _isDisposed = false;
 
-            public Message(CloudQueueMessage message)
+            public Message(CloudQueue queue, CloudQueueMessage message)
             {
+                this._queue = queue;
                 this.InternalMessage = message;
             }
 
             public string Content => InternalMessage.AsString;
 
+            void UpdateMessageVisibility(int seconds)
+            {
+                _queue.UpdateMessageAsync(InternalMessage, TimeSpan.FromSeconds(seconds), MessageUpdateFields.Visibility);
+            }
+
+            public void Cancel()
+            {
+                if (_isDisposed)
+                    throw new InvalidOperationException("Cancel(): Message already in Disposed state");
+
+                try { UpdateMessageVisibility(0); }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+
+                _queue = null;
+                _isDisposed = true;
+            }
+
             public void Done()
             {
-                if(!_isDisposed)
-                {
-                    _isDisposed = true;
-                    _queue.DeleteMessageAsync(InternalMessage).Wait();
-                }
+                if (_isDisposed)
+                    throw new InvalidOperationException("Done(): Message already in Disposed state");
+
+                _queue.DeleteMessageAsync(InternalMessage).Wait();
+                _queue = null;
+                _isDisposed = true;
             }
 
             public void Dispose()
             {
+                if (_isDisposed)
+                    return;
+
                 try
                 {
                     Done();
                 }
-                catch { }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
             }
         }
 
@@ -51,7 +80,7 @@ namespace Pipes.Azure
         {
             var message = _queue.GetMessageAsync().Result;
 
-            return (message != null) ? new Message(message) : null;
+            return (message != null) ? new Message(_queue, message) : null;
         }
 
         string TryReadQueueString()
@@ -60,7 +89,7 @@ namespace Pipes.Azure
             {
                 if (message == null)
                     return null;
-
+                
                 return message.Content;
             }
         }
