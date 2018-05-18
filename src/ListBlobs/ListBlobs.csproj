@@ -6,6 +6,10 @@
     <RuntimeIdentifiers>win10-x64;ubuntu.16.10-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\bin\Debug\netcoreapp2.0\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Pipes.Azure\Pipes.Azure.csproj" />
   </ItemGroup>
