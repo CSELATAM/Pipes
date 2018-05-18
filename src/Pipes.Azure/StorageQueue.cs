@@ -81,8 +81,6 @@ namespace Pipes.Azure
                 if (message == null)
                     return null;
 
-                message.Cancel();
-
                 return message.Content;
             }
         }
@@ -108,6 +106,13 @@ namespace Pipes.Azure
             return message;
         }
 
+        public void Send(string message)
+        {
+            var cloudMessage = new CloudQueueMessage(message);
+
+            _queue.AddMessageAsync(cloudMessage).Wait();
+        }
+
         static void TryCatch(Action cmd)
         {
             try
@@ -119,6 +124,7 @@ namespace Pipes.Azure
                 Debug.WriteLine(ex.ToString());
             }
         }
+
         void WaitExponential(ref int backoff)
         {
             const int BACKOFF_INITIAL = 500;

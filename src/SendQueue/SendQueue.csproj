@@ -5,4 +5,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Pipes.Azure\Pipes.Azure.csproj" />
+  </ItemGroup>
+
 </Project>
