@@ -15,14 +15,12 @@ namespace ListBlobs
             if (args.Length == 1)
                 return -1;
 
-            //var blob = (args.Length == 1) ? new BlobFolder(args[0]) : new BlobFolder(args[0], args[1]);
-
             string storageUrl = args[0];
-            //string filePattern = args[1];
+            string filePattern = args[1];
 
             var blobFolder = new BlobFolder(storageUrl);
 
-            foreach(var filename in ListFiles(blobFolder, "2010/*.pdf"))
+            foreach(var filename in ListFiles(blobFolder, filePattern))
             {
                 Console.WriteLine(filename);
             }
