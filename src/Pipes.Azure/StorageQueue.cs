@@ -8,9 +8,11 @@ namespace Pipes.Azure
 {
     public class StorageQueue
     {
-        class Message
+        class Message : IDisposable
         {
             public readonly CloudQueueMessage InternalMessage;
+            private readonly CloudQueue _queue;
+            private bool _isDisposed = false;
 
             public Message(CloudQueueMessage message)
             {
@@ -18,6 +20,24 @@ namespace Pipes.Azure
             }
 
             public string Content => InternalMessage.AsString;
+
+            public void Done()
+            {
+                if(!_isDisposed)
+                {
+                    _isDisposed = true;
+                    _queue.DeleteMessageAsync(InternalMessage).Wait();
+                }
+            }
+
+            public void Dispose()
+            {
+                try
+                {
+                    Done();
+                }
+                catch { }
+            }
         }
 
         private readonly CloudQueue _queue;
@@ -34,6 +54,17 @@ namespace Pipes.Azure
             return (message != null) ? new Message(message) : null;
         }
 
+        string TryReadQueueString()
+        {
+            using (var message = TryReadQueue())
+            {
+                if (message == null)
+                    return null;
+
+                return message.Content;
+            }
+        }
+
         void DeleteMessage(Message message)
         {
             _queue.DeleteMessageAsync(message.InternalMessage);
@@ -45,10 +76,11 @@ namespace Pipes.Azure
             const int BACKOFF_THRESHOLD = 60000;
             const int BACKOFF_MULTIPLIER = 2;
 
-            var message = TryReadQueue();
             int backoff = BACKOFF_INITIAL;
 
-            while(message == null)
+            string message = TryReadQueueString();
+
+            while (message == null)
             {
                 Task.Delay(backoff).Wait();
 
@@ -57,14 +89,10 @@ namespace Pipes.Azure
                     backoff *= BACKOFF_MULTIPLIER;
                 }
 
-                message = TryReadQueue();
+                message = TryReadQueueString();
             }
-
-            string content = message.Content;
-
-            DeleteMessage(message);
-
-            return content;
+            
+            return message;
         }
     }
 }
