@@ -9,6 +9,8 @@ namespace Pipes.Azure
 {
     public class StorageQueue
     {
+        private TimeSpan DEFAULT_MESSAGE_VISIBILITY = TimeSpan.FromSeconds(10000);
+
         class Message : IDisposable
         {
             public readonly CloudQueueMessage InternalMessage;
@@ -25,7 +27,7 @@ namespace Pipes.Azure
 
             void UpdateMessageVisibility(int seconds)
             {
-                _queue.UpdateMessageAsync(InternalMessage, TimeSpan.FromSeconds(seconds), MessageUpdateFields.Visibility);
+                _queue.UpdateMessageAsync(InternalMessage, TimeSpan.FromSeconds(seconds), MessageUpdateFields.Visibility).Wait();
             }
 
             public void Cancel()
@@ -33,11 +35,7 @@ namespace Pipes.Azure
                 if (_isDisposed)
                     throw new InvalidOperationException("Cancel(): Message already in Disposed state");
 
-                try { UpdateMessageVisibility(0); }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                }
+                TryCatch(() => UpdateMessageVisibility(0));
 
                 _queue = null;
                 _isDisposed = true;
@@ -58,14 +56,7 @@ namespace Pipes.Azure
                 if (_isDisposed)
                     return;
 
-                try
-                {
-                    Done();
-                }
-                catch(Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                }
+                TryCatch( () => Done() );
             }
         }
 
@@ -78,7 +69,7 @@ namespace Pipes.Azure
 
         Message TryReadQueue()
         {
-            var message = _queue.GetMessageAsync().Result;
+            var message = _queue.GetMessageAsync(DEFAULT_MESSAGE_VISIBILITY, options: null, operationContext: null).Result;
 
             return (message != null) ? new Message(_queue, message) : null;
         }
@@ -89,7 +80,9 @@ namespace Pipes.Azure
             {
                 if (message == null)
                     return null;
-                
+
+                message.Cancel();
+
                 return message.Content;
             }
         }
@@ -101,27 +94,46 @@ namespace Pipes.Azure
 
         public string Read()
         {
-            const int BACKOFF_INITIAL = 500;
-            const int BACKOFF_THRESHOLD = 60000;
-            const int BACKOFF_MULTIPLIER = 2;
-
-            int backoff = BACKOFF_INITIAL;
-
             string message = TryReadQueueString();
+            int backoff = 0;
 
             while (message == null)
             {
-                Task.Delay(backoff).Wait();
-
-                if (backoff < BACKOFF_THRESHOLD)
-                {
-                    backoff *= BACKOFF_MULTIPLIER;
-                }
-
+                WaitExponential(ref backoff);
+                
+                // retry
                 message = TryReadQueueString();
             }
             
             return message;
+        }
+
+        static void TryCatch(Action cmd)
+        {
+            try
+            {
+                cmd();
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+        }
+        void WaitExponential(ref int backoff)
+        {
+            const int BACKOFF_INITIAL = 500;
+            const int BACKOFF_THRESHOLD = 60000;
+            const int BACKOFF_MULTIPLIER = 2;
+
+            if( backoff == 0 )
+                backoff = BACKOFF_INITIAL;
+
+            Task.Delay(backoff).Wait();
+
+            if (backoff < BACKOFF_THRESHOLD)
+            {
+                backoff *= BACKOFF_MULTIPLIER;
+            }
         }
     }
 }
