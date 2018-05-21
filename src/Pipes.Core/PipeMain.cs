@@ -4,13 +4,18 @@ using System.Text;
 
 namespace Pipes.Core
 {
-    class PipeMain<T>
+    public class PipeMain<T>
         where T: PipeArgs
     {
         public T Args { get; private set; }
 
         public void With(string[] args)
         {
+        }
+
+        public int RunWith(string[] args)
+        {
+            return 0;
         }
 
         public virtual void Initialize(T args)

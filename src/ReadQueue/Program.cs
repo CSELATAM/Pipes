@@ -1,24 +1,51 @@
 ﻿using System;
+using System.Collections.Generic;
 using Pipes.Azure;
+using Pipes.Core;
 
 namespace ReadQueue
 {
-    class Program
+    // ReadQueue: Arguments
+    class ReadQueueArgs : PipeArgs
     {
-        static int Main(string[] args)
+        //
+        // Syntax: readqueue <storageUrl>
+        //
+        public string StorageUrl => Argument(0);
+    }
+
+    // ReadQueue: Implementation
+    class ReadQueueMain : PipeMain<ReadQueueArgs>
+    {
+        StorageQueue _queue;
+
+        public override void Initialize(ReadQueueArgs args)
         {
-            if (args.Length == 0)
-                return -1;
+            _queue = new StorageQueue(args.StorageUrl);
+        }
 
-            string storageUrl = args[0];
+        // Read the messages from the queue
+        public override PipeOutput RunBefore()
+        {
+            return PipeOutput.From(MessagesFromQueue);
+        }
 
-            var queue = new StorageQueue(storageUrl);
-            
-            while(true)
+        IEnumerable<string> MessagesFromQueue()
+        {
+            while (true)
             {
-                var message = queue.Read();
-                Console.WriteLine(message);
+                var message = _queue.Read();
+
+                if (String.IsNullOrEmpty(message))
+                    break;
+
+                yield return message;
             }
         }
+    }
+
+    class Program
+    {
+        static int Main(string[] args) => (new ReadQueueMain()).RunWith(args);
     }
 }

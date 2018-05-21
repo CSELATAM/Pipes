@@ -4,11 +4,16 @@ using System.Text;
 
 namespace Pipes.Core
 {
-    class PipeOutput
+    public class PipeOutput
     {
         public static PipeOutput Empty => new PipeOutput();
 
         public static PipeOutput FromString(string output)
+        {
+            return new PipeOutput();
+        }
+
+        public static PipeOutput From(Func<IEnumerable<string>> producer)
         {
             return new PipeOutput();
         }

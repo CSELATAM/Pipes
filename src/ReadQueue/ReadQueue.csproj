@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pipes.Azure\Pipes.Azure.csproj" />
+    <ProjectReference Include="..\Pipes.Core\Pipes.Core.csproj" />
   </ItemGroup>
 
 </Project>
