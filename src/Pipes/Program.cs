@@ -6,7 +6,11 @@ namespace Pipes
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Environment.SetEnvironmentVariable("PIPES_CONFIG", "pipes.json", EnvironmentVariableTarget.Process);
+
+            var processInfo = new System.Diagnostics.ProcessStartInfo("cmd");
+            
+            var process = System.Diagnostics.Process.Start(processInfo);
         }
     }
 }
