@@ -2,6 +2,7 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Pipes.Azure
 {
@@ -57,6 +58,13 @@ namespace Pipes.Azure
                 token = segment.ContinuationToken;
 
             } while (token != null);
+        }
+
+        public Stream OpenRead(string filename)
+        {
+            var blob = _container.GetBlobReference(filename);
+
+            return blob.OpenReadAsync().Result;
         }
     }
 }
