@@ -20,6 +20,13 @@ namespace Pipes.Core
             return new PipeOutput(EscapeString(output));
         }
 
+        public static PipeOutput From(IEnumerable<string> producer)
+        {
+            string lines = String.Join('\n', (IEnumerable<string>)producer);
+
+            return new PipeOutput(lines);
+        }
+
         static string EscapeString(string text)
         {
             return text.Replace("\\","\\\\").Replace("\n", "\\n").Replace("\r", "");
@@ -29,12 +36,7 @@ namespace Pipes.Core
         {
             return text.Replace("\\n", "\n");
         }
-
-        //public static PipeOutput From(Func<IEnumerable<string>> producer)
-        //{
-        //    return new PipeOutput();
-        //}
-
+        
         public static implicit operator PipeOutput(string output)
         {
             return new PipeOutput(output);

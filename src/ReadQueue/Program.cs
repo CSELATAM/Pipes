@@ -24,10 +24,10 @@ namespace ReadQueue
             _queue = new StorageQueue(args.StorageUrl);
         }
 
-        // Read the messages from the queue
+        //Read the messages from the queue
         public override PipeOutput RunBefore()
         {
-            return PipeOutput.From(MessagesFromQueue);
+            return PipeOutput.From(MessagesFromQueue());
         }
 
         IEnumerable<string> MessagesFromQueue()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Pipes.Core
@@ -31,14 +32,19 @@ namespace Pipes.Core
 
             yield return RunBefore();
 
-            while ((line = input.ReadLine()) != null)
+            bool shouldRunLoop = IsMethodOverriden();
+
+            if (shouldRunLoop)
             {
-                if (line == "")
-                    break;
+                while ((line = input.ReadLine()) != null)
+                {
+                    if (line == "")
+                        break;
 
-                var output = Run(new PipeInput(line));
+                    var output = Run(new PipeInput(line));
 
-                yield return output;
+                    yield return output;
+                }
             }
 
             yield return RunAfter();
@@ -54,7 +60,19 @@ namespace Pipes.Core
 
         void Process(PipeOutput output)
         {
-            Console.WriteLine(output);
+            string text = output.ToString();
+            string[] lines = text.Split('\n');
+
+            foreach(var line in lines)
+            {
+                Console.WriteLine(line);
+            }
+        }
+
+        bool IsMethodOverriden()
+        {
+            var method = this.GetType().GetMethod("Run");
+            return method.DeclaringType != typeof(PipeMain<T>);
         }
 
         public virtual void Initialize(T args)
