@@ -7,7 +7,7 @@ namespace Pipes.Core
 {
     class ProgramExample
     {
-        public static void Main(string[] args) => (new Example()).With(args);
+        public static void Main(string[] args) => (new Example()).RunWith(args);
     }
 
     public class ExampleArgs : PipeArgs

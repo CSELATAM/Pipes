@@ -6,9 +6,16 @@ namespace Pipes.Core
 {
     public class PipeInput
     {
+        private readonly string _line;
+
+        public PipeInput(string line)
+        {
+            this._line = line;
+        }
+
         public static implicit operator string(PipeInput output)
         {
-            return "";
+            return output._line;
         }
     }
 }
