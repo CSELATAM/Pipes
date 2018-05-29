@@ -33,6 +33,9 @@ namespace Pipes.Core
 
             while ((line = input.ReadLine()) != null)
             {
+                if (line == "")
+                    break;
+
                 var output = Run(new PipeInput(line));
 
                 yield return output;
@@ -40,12 +43,7 @@ namespace Pipes.Core
 
             yield return RunAfter();
         }
-
-        void Process(PipeOutput output)
-        {
-            Console.WriteLine(output);
-        }
-
+        
         void SetupArgs(string[] args)
         {
             var arguments = new T();
@@ -53,7 +51,12 @@ namespace Pipes.Core
 
             this.Args = arguments;
         }
-        
+
+        void Process(PipeOutput output)
+        {
+            Console.WriteLine(output);
+        }
+
         public virtual void Initialize(T args)
         {
         }

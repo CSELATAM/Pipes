@@ -1,6 +1,7 @@
 ﻿using Pipes.Core;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace ExecProc
@@ -23,23 +24,28 @@ namespace ExecProc
             this._process = paramList[0];
             this._arguments = (paramList.Length > 1) ? paramList[1] : null;
             
-            Console.WriteLine(_process + " + " + _arguments[0]);
+            Console.WriteLine(_process +  _arguments);
         }
 
         public override PipeOutput Run(PipeInput input)
         {
+            string args = input;
+
             var procStartInfo = new ProcessStartInfo
             {
                 FileName = _process,
-                Arguments = _arguments,
+                Arguments = String.Format(_arguments, args),
                 UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Normal
+                WindowStyle = ProcessWindowStyle.Normal,
+                RedirectStandardOutput = true
             };
 
             var process = Process.Start(procStartInfo);
             
-            string str = input;
-            return str;
+            var reader = process.StandardOutput;
+            string result = reader.ReadToEnd().Trim('\n');
+            
+            return PipeOutput.FromString(result);
         }
     }
 

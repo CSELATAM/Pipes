@@ -17,7 +17,17 @@ namespace Pipes.Core
 
         public static PipeOutput FromString(string output)
         {
-            return new PipeOutput(output);
+            return new PipeOutput(EscapeString(output));
+        }
+
+        static string EscapeString(string text)
+        {
+            return text.Replace("\\","\\\\").Replace("\n", "\\n").Replace("\r", "");
+        }
+
+        static string UnescapeString(string text)
+        {
+            return text.Replace("\\n", "\n");
         }
 
         //public static PipeOutput From(Func<IEnumerable<string>> producer)
