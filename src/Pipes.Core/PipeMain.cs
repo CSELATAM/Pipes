@@ -60,13 +60,12 @@ namespace Pipes.Core
 
         void Process(PipeOutput output)
         {
-            string text = output.ToString();
-            string[] lines = text.Split('\n');
+            string text;
 
-            foreach(var line in lines)
+            while ((text = output.Read()) != null)
             {
-                Console.WriteLine(line);
-            }
+                Console.WriteLine(text);
+            }            
         }
 
         bool IsMethodOverriden()
@@ -93,5 +92,16 @@ namespace Pipes.Core
         {
             return PipeOutput.Empty;
         }
+
+        static string EscapeString(string text)
+        {
+            return text.Replace("\\", "\\\\").Replace("\n", "\\n").Replace("\r", "");
+        }
+
+        static string UnescapeString(string text)
+        {
+            return text.Replace("\\n", "\n");
+        }
+
     }
 }

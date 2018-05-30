@@ -1,50 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Pipes.Core
 {
     public class PipeOutput
     {
-        string _line;
+        public static PipeOutput Empty = new PipeOutput(new string[] { });
 
-        public PipeOutput(string line)
+        IEnumerator<string> _enumerator;
+
+        public PipeOutput(IEnumerable<string> lines)
         {
-            this._line = line;
-        }
+            if( lines == null)
+                throw new ArgumentNullException(nameof(lines));
 
-        public static PipeOutput Empty = new PipeOutput(null);
+            _enumerator = lines.GetEnumerator();
+        }
 
         public static PipeOutput FromString(string output)
         {
-            return new PipeOutput(EscapeString(output));
+            return new PipeOutput(new string[] { output });
         }
 
-        public static PipeOutput From(IEnumerable<string> producer)
+        public static PipeOutput From(IEnumerable<string> lines)
         {
-            string lines = String.Join('\n', (IEnumerable<string>)producer);
-
             return new PipeOutput(lines);
         }
 
-        static string EscapeString(string text)
+        public string Read()
         {
-            return text.Replace("\\","\\\\").Replace("\n", "\\n").Replace("\r", "");
-        }
+            if (_enumerator == null)
+                return null;
 
-        static string UnescapeString(string text)
-        {
-            return text.Replace("\\n", "\n");
-        }
-        
-        public static implicit operator PipeOutput(string output)
-        {
-            return new PipeOutput(output);
-        }
+            bool hasData = _enumerator.MoveNext();
 
-        public override string ToString()
-        {
-            return _line;
+            if( !hasData )
+            {
+                _enumerator.Dispose();
+                _enumerator = null;
+                return null;
+            }
+
+            return _enumerator.Current;
         }
     }
 }
