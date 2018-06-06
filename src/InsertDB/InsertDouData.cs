@@ -10,7 +10,7 @@ namespace InsertDB
     class InsertDouData
     {
         static Regex ArticleIdRegex = new Regex(@"-artigo(\d+)");
-        static Regex ArticleTypeRegex = new Regex(@"(.*) N[o°º]\s+(\d+)");
+        static Regex ArticleTypeRegex = new Regex(@"(.*) N[o°º]\s+([\d\.]+)");
         
         public ExecSqlCmd CreateInput(string data)
         {
@@ -73,7 +73,7 @@ namespace InsertDB
             {
 
                 artType = artigoTypeMatch.Groups[1].Value;
-                artTypeSequence = Int32.Parse(artigoTypeMatch.Groups[2].Value);
+                artTypeSequence = Int32.Parse(artigoTypeMatch.Groups[2].Value.Replace(".",""));
             }
 
             int artigoId = Int32.Parse(artigoMatch.Groups[1].Value );
