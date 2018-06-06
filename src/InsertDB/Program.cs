@@ -12,6 +12,7 @@ namespace InsertDB
 
     class InsertDBMain : PipeMain<InsertDBArgs>
     {
+        private InsertDouData _insertDouData = new InsertDouData();
         private string _connectionString;
         private int _lineNumber = 0;
 
@@ -24,9 +25,9 @@ namespace InsertDB
         {
             using (var conn = GetConnection())
             {
-                string command = CreateInputCommand();
-                var inputModel = CreateInputModel(input.GetString());
-                conn.Execute(command, inputModel);
+                var inputModel = _insertDouData.CreateInput(input.GetString());
+ 
+                conn.Execute(inputModel.Command, inputModel.Parameters);
             }
 
             return PipeOutput.FromString((_lineNumber++).ToString());
@@ -48,16 +49,6 @@ namespace InsertDB
         IDbConnection GetConnectionMySql()
         {
             return new MySql.Data.MySqlClient.MySqlConnection(_connectionString);
-        }
-
-        string CreateInputCommand()
-        {
-            return "INSERT tbLog(id) VALUES(@Param1)";
-        }
-
-        object CreateInputModel(string input)
-        {
-            return new { Param1 = "111"};
         }
     }
 
