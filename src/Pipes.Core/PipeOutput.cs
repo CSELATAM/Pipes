@@ -19,6 +19,12 @@ namespace Pipes.Core
             _enumerator = lines.GetEnumerator();
         }
 
+        public static PipeOutput RemoveCRLF(string rawOutput)
+        {
+            string output = rawOutput.Replace("\r\n", " ").Replace("\n", " ");
+            return new PipeOutput(new string[] { output });
+        }
+
         public static PipeOutput FromString(string output)
         {
             return new PipeOutput(new string[] { output });

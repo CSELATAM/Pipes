@@ -13,6 +13,11 @@ namespace Pipes.Core
             this._line = line;
         }
 
+        public string GetString()
+        {
+            return _line;
+        }
+
         public static implicit operator string(PipeInput output)
         {
             return output._line;
