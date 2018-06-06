@@ -13,6 +13,12 @@ namespace Pipes.Core
             this._line = line;
         }
 
+        public string FromBase64()
+        {
+            var buferBytes = System.Convert.FromBase64String(_line);
+            return Encoding.UTF8.GetString(buferBytes);
+        }
+
         public string GetString()
         {
             return _line;

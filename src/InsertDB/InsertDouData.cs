@@ -13,10 +13,18 @@ namespace InsertDB
 
         public ExecSqlCmd CreateInput(string data)
         {
-            string command = CreateInputCommand();
-            var inputModel = CreateInputModel(data);
+            try
+            {
+                string command = CreateInputCommand();
+                var inputModel = CreateInputModel(data);
 
-            return new ExecSqlCmd { Command = command, Parameters = inputModel };
+                return new ExecSqlCmd { Command = command, Parameters = inputModel };
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
+            return null;
         }
         
         string CreateInputCommand()
@@ -27,6 +35,14 @@ namespace InsertDB
         object CreateInputModel(string input)
         {
             var doc = new XmlDocument();
+
+            // Quick fix
+            input = input
+                    .Replace("<Identifica>", "<Identifica><![CDATA[")
+                    .Replace("</Identifica>", "]]></Identifica>")
+                    .Replace("<Ementa>", "<Ementa><![CDATA[")
+                    .Replace("</Ementa>", "]]></Ementa>");
+
             doc.LoadXml(input);
 
             string name = doc.SelectSingleNode("xml/@filename")?.Value;
@@ -36,7 +52,10 @@ namespace InsertDB
             string identifica = doc.SelectSingleNode("xml/article/body/Identifica").InnerText;
 
             string filename = name.Split('/').Last();
-            string[] hierarquia = artCategory.Split('/');
+            string[] hierarquia = artCategory
+                                    .Split('/')
+                                    .Select(h => h.Trim())
+                                    .ToArray();
             string[] assinaturas = doc.SelectNodes("xml/article/body/Autores/assina")
                                     .Cast<XmlNode>()
                                     .Select(x => x.InnerText)
@@ -50,7 +69,7 @@ namespace InsertDB
                 PubName = pubName,
                 PubDate = pubDate,
                 ArtigoId = artigoId,
-                Hierarquia = String.Join('/', hierarquia),
+                Hierarquia = String.Join('/', hierarquia).Replace(",/", ", "), // fix some issues with hierarchy
                 Assinaturas = String.Join('/', assinaturas)
             };
         }

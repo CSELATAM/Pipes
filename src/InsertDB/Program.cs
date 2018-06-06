@@ -15,6 +15,7 @@ namespace InsertDB
         private InsertDouData _insertDouData = new InsertDouData();
         private string _connectionString;
         private int _lineNumber = 0;
+        private int _errorCount = 0;
 
         public override void Initialize(InsertDBArgs args)
         {
@@ -25,9 +26,16 @@ namespace InsertDB
         {
             using (var conn = GetConnection())
             {
-                var inputModel = _insertDouData.CreateInput(input.GetString());
+                var inputModel = _insertDouData.CreateInput(input.FromBase64());
  
-                conn.Execute(inputModel.Command, inputModel.Parameters);
+                if(inputModel != null)
+                {
+                    conn.Execute(inputModel.Command, inputModel.Parameters);
+                }
+                else
+                {
+                    return PipeOutput.FromString($"ErroCount = {(_errorCount++).ToString()}"); 
+                }
             }
 
             return PipeOutput.FromString((_lineNumber++).ToString());

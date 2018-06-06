@@ -30,7 +30,7 @@ namespace ReadBlob
 
                 content = CustomDou.AddName(content, blobName);
 
-                return PipeOutput.RemoveCRLF(content);
+                return PipeOutput.ConvertBase64(content);
             }
         }
     }

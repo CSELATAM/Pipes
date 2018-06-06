@@ -19,10 +19,11 @@ namespace Pipes.Core
             _enumerator = lines.GetEnumerator();
         }
 
-        public static PipeOutput RemoveCRLF(string rawOutput)
+        public static PipeOutput ConvertBase64(string rawOutput)
         {
-            string output = rawOutput.Replace("\r\n", " ").Replace("\n", " ");
-            return new PipeOutput(new string[] { output });
+            var outputBytes = Encoding.UTF8.GetBytes(rawOutput);
+            string outputBase64 = System.Convert.ToBase64String(outputBytes);
+            return new PipeOutput(new string[] { outputBase64 });
         }
 
         public static PipeOutput FromString(string output)
