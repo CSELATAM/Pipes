@@ -10,7 +10,8 @@ namespace InsertDB
     class InsertDouData
     {
         static Regex ArticleIdRegex = new Regex(@"-artigo(\d+)");
-
+        static Regex ArticleTypeRegex = new Regex(@"(.*) N[o°º]\s+(\d+)");
+        
         public ExecSqlCmd CreateInput(string data)
         {
             try
@@ -29,7 +30,7 @@ namespace InsertDB
         
         string CreateInputCommand()
         {
-            return "INSERT tbArtigos(Filename, PubName, PubDate, ArtigoId, Hierarquia, Assinaturas) VALUES( @Filename, @PubName, @PubDate, @ArtigoId, @Hierarquia, @Assinaturas)";
+            return "INSERT tbArtigos(Filename, PubName, PubDate, ArtigoType, ArtigoTypeSeq, ArtigoId, Identifica, Orgao, Hierarquia, Assinaturas) VALUES( @Filename, @PubName, @PubDate, @ArtigoType, @ArtigoTypeSeq, @ArtigoId, @Identifica, @Orgao, @Hierarquia, @Assinaturas)";
         }
 
         object CreateInputModel(string input)
@@ -60,15 +61,32 @@ namespace InsertDB
                                     .Cast<XmlNode>()
                                     .Select(x => x.InnerText)
                                     .ToArray();
+            string orgao = hierarquia[0];
 
             var artigoMatch = ArticleIdRegex.Match(name);
+            var artigoTypeMatch = ArticleTypeRegex.Match(identifica);
+
+            string artType = null;
+            int? artTypeSequence = null;
+
+            if ( artigoTypeMatch.Success )
+            {
+
+                artType = artigoTypeMatch.Groups[1].Value;
+                artTypeSequence = Int32.Parse(artigoTypeMatch.Groups[2].Value);
+            }
+
             int artigoId = Int32.Parse(artigoMatch.Groups[1].Value );
 
             return new { 
                 Filename = filename,
                 PubName = pubName,
                 PubDate = pubDate,
+                ArtigoType = artType,
+                ArtigoTypeSeq = artTypeSequence,
                 ArtigoId = artigoId,
+                Identifica = identifica,
+                Orgao = orgao,
                 Hierarquia = String.Join('/', hierarquia).Replace(",/", ", "), // fix some issues with hierarchy
                 Assinaturas = String.Join('/', assinaturas)
             };
