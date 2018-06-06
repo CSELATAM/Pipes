@@ -1,7 +1,6 @@
 ﻿using Pipes.Core;
 using System;
 using System.Data;
-using System.Data.SqlClient;
 using Dapper;
 
 namespace InsertDB
@@ -23,7 +22,7 @@ namespace InsertDB
 
         public override PipeOutput Run(PipeInput input)
         {
-            using (var conn = GetConnectionSqlServer())
+            using (var conn = GetConnection())
             {
                 string command = CreateInputCommand();
                 var inputModel = CreateInputModel(input.GetString());
@@ -33,14 +32,27 @@ namespace InsertDB
             return PipeOutput.FromString((_lineNumber++).ToString());
         }
 
+        IDbConnection GetConnection()
+        {
+            if (_connectionString.Contains(".mysql."))
+                return GetConnectionMySql();
+
+            return GetConnectionSqlServer();
+        }
+
         IDbConnection GetConnectionSqlServer()
         {
-            return new SqlConnection(_connectionString);
+            return new System.Data.SqlClient.SqlConnection(_connectionString);
+        }
+
+        IDbConnection GetConnectionMySql()
+        {
+            return new MySql.Data.MySqlClient.MySqlConnection(_connectionString);
         }
 
         string CreateInputCommand()
         {
-            return "SELECT @Param1";
+            return "INSERT tbLog(id) VALUES(@Param1)";
         }
 
         object CreateInputModel(string input)
