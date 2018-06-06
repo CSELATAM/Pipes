@@ -28,6 +28,8 @@ namespace ReadBlob
             {
                 string content = reader.ReadToEnd();
 
+                content = CustomDou.AddName(content, blobName);
+
                 return PipeOutput.RemoveCRLF(content);
             }
         }
